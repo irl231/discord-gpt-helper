@@ -1,9 +1,10 @@
 import { Client, GatewayIntentBits } from "discord.js";
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
+
 import * as Poe from "./poe";
 
 (async () => {
-  dotenv.config();
+	dotenv.config();
 	await Poe.initialize();
 
 	const client = new Client({
@@ -25,6 +26,6 @@ import * as Poe from "./poe";
 			console.log(message.cleanContent);
 		})
 		.on("ready", () => console.log("ready!"));
-		console.log(process.env.NODE_ENV)
+	console.log(process.env.NODE_ENV);
 	client.login(process.env.DISCORD_TOKEN!);
 })();

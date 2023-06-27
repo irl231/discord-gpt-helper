@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"typeRoots": ["./node_modules/@types"],
-    	"lib": ["ESNext"],
+		"lib": ["ESNext"],
 		"target": "ESNext",
 		"module": "ESNext",
 		"moduleResolution": "Node",
@@ -17,7 +17,7 @@
 		"outDir": "dist",
 		"paths": {
 			".../*": ["../*"]
-		},
+		}
 	},
 	"include": ["src", "environment.d.ts"],
 	"exclude": ["node_modules"]

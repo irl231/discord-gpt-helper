@@ -10,6 +10,7 @@ export const initialize = async () => {
 			token: token,
 			displayName: "Sage",
 		});
+
 		poes.set(token, poe);
 		await poe.initialize().catch((error) => {
 			if (error.message.includes("Invalid token")) {
