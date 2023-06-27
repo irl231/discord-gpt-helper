@@ -10,9 +10,18 @@ function definePrettierConfig(config) {
 	return config;
 }
 
+const dirNames = readdirSync(`${__dirname}/${baseUrl}`, { withFileTypes: true })
+	.filter((entry) => entry.isDirectory())
+	.map((entry) => entry.name);
+
 module.exports = definePrettierConfig({
 	plugins: [require("@trivago/prettier-plugin-sort-imports")],
-	importOrder: ["<THIRD_PARTY_MODULES>", "^.?[./]"],
+	importOrder: [
+		"^(discord.js/(.*)$)|^(discord.js$)",
+		"<THIRD_PARTY_MODULES>",
+		...dirNames.map((name) => `^(${name})|^.../(${name})`),
+		"^.?[./]",
+	],
 	importOrderSeparation: true,
 	importOrderSortSpecifiers: true,
 	overrides: [

@@ -14,10 +14,11 @@
 	"prettier.semi": true,
 	"prettier.tabWidth": 4,
 	"prettier.endOfLine": "lf",
-	"prettier.prettierPath": "./node_modules/prettier",
+	"prettier.prettierPath": "node_modules/prettier",
 	"prettier.printWidth": 120,
 	"prettier.requireConfig": true,
 	"prettier.withNodeModules": true,
+	"files.autoSave": "off",
 	"files.eol": "\n",
 	"files.autoGuessEncoding": true,
 	"files.trimFinalNewlines": true,
@@ -29,10 +30,16 @@
 	"editor.formatOnSave": true,
 	"editor.formatOnType": true,
 	"editor.formatOnPaste": true,
-
 	"editor.codeActionsOnSave": {
 		"source.fixAll": true,
 		"source.organizeImports": true
 	},
-	"files.autoSave": "off"
+	"explorer.decorations.badges": false,
+	"explorer.confirmDragAndDrop": false,
+	"explorer.compactFolders": false,
+	"explorer.confirmDelete": false,
+	"explorer.autoReveal": false,
+	"explorer.incrementalNaming": "smart",
+	"explorer.sortOrder": "type",
+	"explorer.openEditors.visible": 10
 }

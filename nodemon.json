@@ -1,7 +1,0 @@
-{
-	"$schema": "http://json.schemastore.org/nodemon",
-	"ignore": ["**/*.test.ts", "**/*.spec.ts", "node_modules"],
-	"watch": ["src"],
-	"exec": "NODE_ENV=development ts-node --esm src/index.ts",
-	"ext": "ts,json"
-}

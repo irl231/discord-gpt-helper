@@ -8,14 +8,21 @@
 		"format": "prettier --ignore-path .gitignore --write . --ignore-unknown"
 	},
 	"dependencies": {
+		"@discordjs/builders": "1.6.3",
 		"@lazuee/poe.js": "0.1.5",
-		"discord.js": "14.11.0"
+		"@prisma/client": "4.16.1",
+		"captcha-canvas": "3.2.1",
+		"discord.js": "14.11.0",
+		"fast-glob": "3.2.12",
+		"skia-canvas": "1.0.1"
 	},
 	"devDependencies": {
 		"@trivago/prettier-plugin-sort-imports": "4.1.1",
 		"@types/node": "20.3.2",
 		"dotenv": "16.3.1",
 		"prettier": "2.8.8",
+		"prisma": "4.16.1",
+		"tslib": "2.6.0",
 		"tsx": "3.12.7",
 		"typescript": "5.1.3"
 	}
