@@ -4,10 +4,12 @@ import { PrismaClient } from "@prisma/client";
 import glob from "fast-glob";
 import { resolve } from "path";
 
+import { fileURLToPath } from "url";
 import { addListener } from "../utils";
 import Command from "./command";
 import Event from "./event";
 
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 declare module "discord.js" {
 	export interface Client {
 		commands: Collection<string, Command>;
@@ -56,8 +58,8 @@ export default class Client extends Bot {
 				console.error("An error occurred while connecting to the database", { error });
 			});
 
-		await super.login(process.env["DISCORD_TOKEN"]);
 		await this.loadAll();
+		await super.login(process.env["DISCORD_TOKEN"]);
 	}
 
 	async loadAll() {
@@ -65,7 +67,7 @@ export default class Client extends Bot {
 			try {
 				const filepath = resolve(__dirname, "..", filename);
 				const command: Command = (await import(filepath)).default;
-				if (!(command instanceof Command)) return;
+				if (!(command instanceof Command)) continue;
 
 				command.connect(this);
 				this.commands.set(command.name, command);
@@ -74,13 +76,14 @@ export default class Client extends Bot {
 			}
 		}
 
-		for (const filename of glob.sync("events/**/*.{js,ts}", { cwd: resolve(__dirname, "..") })) {
+		for (const filename of glob.sync("events/**/*.ts", { cwd: resolve(__dirname, "..") })) {
 			try {
 				const filepath = resolve(__dirname, "..", filename);
 				const data = (await import(filepath)).default;
 				const events: Event<any>[] = Array.isArray(data) ? [...data] : [data];
 				for (const event of events) {
-					if (!(event instanceof Event)) return;
+					if (!(event instanceof Event)) continue;
+			console.log(filename)
 					addListener(this, event.data.name, event.data.execute, event.data.name);
 				}
 			} catch (error) {
