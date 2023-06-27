@@ -19,6 +19,9 @@ dependencies:
   fast-glob:
     specifier: 3.2.12
     version: 3.2.12
+  set-interval-async:
+    specifier: 3.0.3
+    version: 3.0.3
   skia-canvas:
     specifier: 1.0.1
     version: 1.0.1
@@ -1414,6 +1417,11 @@ packages:
     resolution: {integrity: sha512-KiKBS8AnWGEyLzofFfmvKwpdPzqiy16LvQfK3yv/fVH7Bj13/wl3JSR1J+rfgRE9q7xUJK4qvgS8raSOeLUehw==}
     dev: false
 
+  /set-interval-async@3.0.3:
+    resolution: {integrity: sha512-o4DyBv6mko+A9cH3QKek4SAAT5UyJRkfdTi6JHii6ZCKUYFun8SwgBmQrOXd158JOwBQzA+BnO8BvT64xuCaSw==}
+    engines: {node: '>= 14.0.0'}
+    dev: false
+
   /signal-exit@3.0.7:
     resolution: {integrity: sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==}
     dev: false
@@ -1647,6 +1655,7 @@ time:
   /fast-glob@3.2.12: '2022-09-09T06:40:27.748Z'
   /prettier@2.8.8: '2023-04-23T07:26:12.772Z'
   /prisma@4.16.1: '2023-06-22T16:23:04.509Z'
+  /set-interval-async@3.0.3: '2022-12-31T21:24:54.365Z'
   /skia-canvas@1.0.1: '2022-10-17T22:03:05.682Z'
   /tsc-alias@1.8.6: '2023-04-27T08:49:24.072Z'
   /tslib@2.6.0: '2023-06-26T23:07:41.304Z'

@@ -14,7 +14,10 @@ const changeImportStatementsInFile = (filePath) => {
 				const resolvedPath = resolve(dirname(filePath), p2);
 				const extension =
 					existsSync(resolvedPath) && lstatSync(resolvedPath).isDirectory() ? "/index.js" : ".js";
-				p2 = existsSync(`${resolvedPath}${extension}`) && lstatSync(`${resolvedPath}${extension}`).isFile() ? `${p2}${extension}` : p2;
+				p2 =
+					existsSync(`${resolvedPath}${extension}`) && lstatSync(`${resolvedPath}${extension}`).isFile()
+						? `${p2}${extension}`
+						: p2;
 				return `${p1}${p2}${p3}`;
 			}
 		}

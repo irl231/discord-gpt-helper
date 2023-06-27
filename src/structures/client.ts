@@ -3,13 +3,13 @@ import { Client as Bot, Collection, GatewayIntentBits, Partials } from "discord.
 import { PrismaClient } from "@prisma/client";
 import glob from "fast-glob";
 import { resolve } from "path";
-
 import { fileURLToPath } from "url";
+
 import { addListener } from "../utils";
 import Command from "./command";
 import Event from "./event";
 
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 declare module "discord.js" {
 	export interface Client {
 		commands: Collection<string, Command>;
@@ -83,7 +83,7 @@ export default class Client extends Bot {
 				const events: Event<any>[] = Array.isArray(data) ? [...data] : [data];
 				for (const event of events) {
 					if (!(event instanceof Event)) continue;
-			console.log(filename)
+					console.log(filename);
 					addListener(this, event.data.name, event.data.execute, event.data.name);
 				}
 			} catch (error) {

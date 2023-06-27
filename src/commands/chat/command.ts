@@ -8,10 +8,12 @@ import {
 	ThreadAutoArchiveDuration,
 } from "discord.js";
 
+import { clearIntervalAsync, setIntervalAsync } from "set-interval-async";
+
 import Command from "../../structures/command";
 import { send_message } from "./poe";
 
-const history = async function (
+const chatHistory = async function (
 	message: Message,
 	conversation: Record<string, any>[] = []
 ): Promise<Record<string, any>[]> {
@@ -30,7 +32,7 @@ const history = async function (
 		});
 
 		const reply = await message.fetchReference().catch(() => null);
-		if (reply) return await history(reply, conversation);
+		if (reply) return await chatHistory(reply, conversation);
 	}
 
 	return conversation.reverse();
@@ -45,7 +47,7 @@ export default new Command("gpt", "Ask me anything")
 				.setColor("#2f3136");
 			const button = new ButtonBuilder()
 				.setCustomId("gpt-thread")
-				.setLabel("Start Conversation")
+				.setLabel("Start Record<string, any>")
 				.setStyle(ButtonStyle.Success);
 			const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button);
 
@@ -111,8 +113,7 @@ export default new Command("gpt", "Ask me anything")
 			const thread = message.channel;
 			const category = "ask me anything";
 			const topic = "programming related stuff";
-
-			const convo = await history(message);
+			const history = await chatHistory(message);
 			const conversation = [
 				{
 					role: "system",
@@ -128,72 +129,89 @@ You are in "${thread.name}" channel, part of the ${category} category. This chan
 You only response relevant to "${topic}" and programming.
 `,
 				},
-			].concat(convo as any[]);
+			].concat(history as any[]);
 
 			const loading = message.guild?.emojis.cache.get("1118947021508853904");
 			const suffix = ` ${loading}`;
 			const maxLength = 1000;
 			const chunks: string[] = [];
+			let done = false;
 			let currentChunk = 0;
 			let currentText = "";
 			let newText = "";
+			let text = "";
 
 			let _message = await message.reply(`${loading}ㅤ`);
 
-			await send_message(conversation as any[], {
-				onRunning: () => {},
-				onTyping: async ({ text_new }) => {
-					if (!chunks[currentChunk]) chunks.push("");
-					chunks[currentChunk] += text_new;
+			await send_message(conversation as any, {
+				onRunning: () => {
+					const intervalId = setIntervalAsync(async () => {
+						if (text.length >= 5) {
+							if (!chunks[currentChunk]) chunks.push("");
+							chunks[currentChunk] += text.substring([...chunks.values()].join().length);
 
-					currentText = chunks[currentChunk]?.trim() ?? "";
-					newText = "";
+							if (done || (done && currentText.length >= maxLength)) {
+								if (currentText.length >= 1)
+									await _message.edit(currentText.substring(0, currentText.length - suffix.length));
+								await clearIntervalAsync(intervalId);
+								return;
+							}
 
-					const codeBlocks = currentText!.match(/`{3}([\w]*)\n([\S\s]+?)\n*?(?:`{3}|$)/g) || [];
-					const lastCodeBlock = codeBlocks[codeBlocks.length - 1];
-					const lines = currentText!.split("\n");
-					const lastLine = lines[lines.length - 1];
+							currentText = chunks[currentChunk]?.trim() ?? "";
+							newText = "";
 
-					if (lastCodeBlock && !lastCodeBlock.endsWith("```") && currentText.length >= maxLength) {
-						const incompleteCodeBlock = lastCodeBlock;
-						chunks[currentChunk] = currentText!.substring(0, currentText!.lastIndexOf(incompleteCodeBlock));
-						currentText = chunks[currentChunk]?.trim() ?? "";
+							const codeBlocks = currentText!.match(/`{3}([\w]*)\n([\S\s]+?)\n*?(?:`{3}|$)/g) || [];
+							const lastCodeBlock = codeBlocks[codeBlocks.length - 1];
+							const lines = currentText!.split("\n");
+							const lastLine = lines[lines.length - 1];
 
-						currentChunk++;
-						chunks.push("");
-						chunks[currentChunk] += incompleteCodeBlock;
-						newText = chunks[currentChunk] ?? "";
-					} else if (
-						lastLine &&
-						(/\s+$/.test(lastLine) || !/[.,!?:;]$/.test(lastLine)) &&
-						currentText.length >= maxLength
-					) {
-						const incompleteLastLine = lastLine;
-						chunks[currentChunk] = currentText
-							.substring(0, currentText.lastIndexOf(incompleteLastLine))
-							.trimEnd();
-						currentText = chunks[currentChunk]?.trim() ?? "";
+							if (lastCodeBlock && !lastCodeBlock.endsWith("```") && currentText.length >= maxLength) {
+								const incompleteCodeBlock = lastCodeBlock;
+								chunks[currentChunk] = currentText!.substring(
+									0,
+									currentText!.lastIndexOf(incompleteCodeBlock)
+								);
+								currentText = chunks[currentChunk]?.trim() ?? "";
 
-						currentChunk++;
-						chunks.push("");
-						chunks[currentChunk] += incompleteLastLine;
-						newText = chunks[currentChunk] ?? "";
-					}
+								currentChunk++;
+								chunks.push("");
+								chunks[currentChunk] += incompleteCodeBlock;
+								newText = chunks[currentChunk] ?? "";
+							} else if (
+								lastLine &&
+								(/\s+$/.test(lastLine) || !/[.,!?:;]$/.test(lastLine)) &&
+								currentText.length >= maxLength
+							) {
+								const incompleteLastLine = lastLine;
+								chunks[currentChunk] = currentText
+									.substring(0, currentText.lastIndexOf(incompleteLastLine))
+									.trimEnd();
+								currentText = chunks[currentChunk]?.trim() ?? "";
 
-					currentText = currentText.replaceAll(
-						/([\n\r]{2,})(?=[^\n\r]*```[\s\S]*?```)|([\n\r]{2,})(?=[^\n\r])/g,
-						"\n"
-					);
+								currentChunk++;
+								chunks.push("");
+								chunks[currentChunk] += incompleteLastLine;
+								newText = chunks[currentChunk] ?? "";
+							}
 
-					currentText = currentText + suffix;
-					if (currentText.length >= 1 && newText.length <= 0) await _message.edit(currentText);
-					else if (currentText.length >= 1)
-						await _message.edit(currentText.substring(0, currentText.length - suffix.length));
+							currentText = currentText.replaceAll(
+								/([\n\r]{2,})(?=[^\n\r]*```[\s\S]*?```)|([\n\r]{2,})(?=[^\n\r])/g,
+								"\n"
+							);
 
-					if (newText.length >= 1) _message = await message.channel.send(newText + suffix);
+							currentText = currentText + suffix;
+							if (currentText.length >= 1 && newText.length <= 0) await _message.edit(currentText);
+							else if (currentText.length >= 1)
+								await _message.edit(currentText.substring(0, currentText.length - suffix.length));
+
+							if (newText.length >= 1) _message = await message.channel.send(newText + suffix);
+						}
+					}, 1000);
+				},
+				onTyping: async ({ text }) => {
+					text = text;
 				},
 			});
-
-			await _message.edit(currentText.substring(0, currentText.length - suffix.length));
+			done = true;
 		},
 	});
