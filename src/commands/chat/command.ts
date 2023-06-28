@@ -208,11 +208,11 @@ You only response relevant to "${topic}" and programming.
 
 							if (newText.length >= 1) await sendMessage(newText + suffix);
 						}
-					}, 1000);
+					}, 500);
 				},
 				onTyping: async (msg) => {
 					text = msg.text;
-					await new Promise((resolve) => setTimeout(resolve, 300));
+					await new Promise((resolve) => setTimeout(resolve, 100));
 				},
 			});
 			done = true;
