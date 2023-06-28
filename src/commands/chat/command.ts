@@ -214,11 +214,11 @@ You are in "${thread.name}" channel, part of the ${category} category.
 							await editMessage(currentText.substring(0, currentText.length - suffix.length));
 
 						if (newText.length >= 1) await sendMessage(newText + suffix);
-					}, 500);
+					}, 100);
 				},
 				onTyping: async (msg) => {
 					text = msg.text;
-					await new Promise((resolve) => setTimeout(resolve, 100));
+					await new Promise((resolve) => setTimeout(resolve, 200));
 				},
 			});
 
