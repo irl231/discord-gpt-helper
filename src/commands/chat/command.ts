@@ -137,58 +137,16 @@ You are in "${thread.name}" channel, part of the ${category} category.
 			let newText = "";
 			let text = "";
 
-			message = await message.reply(suffix);
-			const editMessage = async (content: string) => await message.edit(content);
-			const sendMessage = async (content: string) => (message = await message.channel.send(content));
-
-			const handleIncompleteCodeBlock = (currentText: string) => {
-				const codeBlocks = currentText!.match(/`{3}([\w]*)\n([\S\s]+?)\n*?(?:`{3}|$)/g) || [];
-				const lastCodeBlock = codeBlocks[codeBlocks.length - 1];
-
-				if (lastCodeBlock && !lastCodeBlock.endsWith("```") && currentText.length >= maxLength) {
-					const incompleteCodeBlock = lastCodeBlock;
-					chunks[currentChunk] = currentText!.substring(0, currentText!.lastIndexOf(incompleteCodeBlock));
-					currentText = chunks[currentChunk]?.trim() ?? "";
-
-					currentChunk++;
-					chunks.push("");
-					chunks[currentChunk] += incompleteCodeBlock;
-					newText = chunks[currentChunk] ?? "";
-				}
-
-				return currentText;
-			};
-
-			const handleIncompleteLine = (currentText: string) => {
-				const lines = currentText!.split("\n");
-				const lastLine = lines[lines.length - 1];
-
-				if (
-					lastLine &&
-					(/\s+$/.test(lastLine) || !/[.,!?:;]$/.test(lastLine)) &&
-					currentText.length >= maxLength
-				) {
-					const incompleteLastLine = lastLine;
-					chunks[currentChunk] = currentText
-						.substring(0, currentText.lastIndexOf(incompleteLastLine))
-						.trimEnd();
-					currentText = chunks[currentChunk]?.trim() ?? "";
-
-					currentChunk++;
-					chunks.push("");
-					chunks[currentChunk] += incompleteLastLine;
-					newText = chunks[currentChunk] ?? "";
-				}
-
-				return currentText;
-			};
+			let _message = await message.reply(suffix);
+			const editMessage = async (content: string) => await _message.edit(content);
+			const sendMessage = async (content: string) => (_message = await message.channel.send(content));
 
 			await send_message(conversation as any[], {
 				onRunning: async () => {
 					const intervalId = setIntervalAsync(async () => {
 						if (text.length < 5) return;
 
-						chunks[currentChunk] ||= "";
+						if (!chunks[currentChunk]) chunks.push("");
 						chunks[currentChunk] += text.substring([...chunks.values()].join().length);
 
 						if (done || (done && currentText.length >= maxLength)) {
@@ -199,12 +157,43 @@ You are in "${thread.name}" channel, part of the ${category} category.
 							return;
 						}
 
-						currentText = chunks[currentChunk]?.trim() ?? "";
-						newText = "";
+						[currentText, newText] = [chunks[currentChunk]?.trim() ?? "", ""];
 
-						currentText = handleIncompleteCodeBlock(currentText);
-						currentText = handleIncompleteLine(currentText);
-						currentText = currentText.replaceAll(
+						const codeBlocks = currentText!.match(/`{3}([\w]*)\n([\S\s]+?)\n*?(?:`{3}|$)/g) || [];
+						const lastCodeBlock = codeBlocks[codeBlocks.length - 1];
+						const lines = currentText!.split("\n");
+						const lastLine = lines[lines.length - 1];
+
+						if (lastCodeBlock && !lastCodeBlock.endsWith("```") && currentText.length >= maxLength) {
+							const incompleteCodeBlock = lastCodeBlock;
+							chunks[currentChunk] = currentText!.substring(
+								0,
+								currentText!.lastIndexOf(incompleteCodeBlock)
+							);
+							currentText = chunks[currentChunk]?.trim() ?? "";
+
+							currentChunk++;
+							chunks.push("");
+							chunks[currentChunk] += incompleteCodeBlock;
+							newText = chunks[currentChunk] ?? "";
+						} else if (
+							lastLine &&
+							(/\s+$/.test(lastLine) || !/[.,!?:;]$/.test(lastLine)) &&
+							currentText.length >= maxLength
+						) {
+							const incompleteLastLine = lastLine;
+							chunks[currentChunk] = currentText
+								.substring(0, currentText.lastIndexOf(incompleteLastLine))
+								.trimEnd();
+							currentText = chunks[currentChunk]?.trim() ?? "";
+
+							currentChunk++;
+							chunks.push("");
+							chunks[currentChunk] += incompleteLastLine;
+							newText = chunks[currentChunk] ?? "";
+						}
+
+						currentText = currentText.replace(
 							/([\n\r]{2,})(?=[^\n\r]*```[\s\S]*?```)|([\n\r]{2,})(?=[^\n\r])/g,
 							"\n"
 						);
