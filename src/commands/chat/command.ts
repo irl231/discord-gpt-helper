@@ -212,6 +212,7 @@ You only response relevant to "${topic}" and programming.
 				},
 				onTyping: async (msg) => {
 					text = msg.text;
+					await new Promise((resolve) => setTimeout(resolve, 300));
 				},
 			});
 			done = true;
