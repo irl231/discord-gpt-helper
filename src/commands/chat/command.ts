@@ -137,53 +137,58 @@ You only response relevant to "${topic}" and programming.
 
 			let _message = await message.reply(`${loading}ㅤ`);
 
-			await send_message(conversation as any, {
-				onRunning: async () => {
-					while (true) {
-						if (newText.length >= 1) console.log("newText:", newText);
-						if (newText.length <= 5) continue;
-						const prevText = currentText;
-						currentText += newText;
+			await send_message(conversation as any[], {
+				onRunning: () => {
+					(async () => {
+						console.log("Running!!");
+						while (true) {
+							if (newText.length >= 1) console.log("newText:", newText);
+							if (newText.length <= 5) continue;
+							const prevText = currentText;
+							currentText += newText;
 
-						const codeBlocks = currentText!.match(/`{3}([\w]*)\n([\S\s]+?)\n*?(?:`{3}|$)/g) || [];
-						const lastCodeBlock = codeBlocks[codeBlocks.length - 1];
-						const lines = currentText!.split("\n");
-						const lastLine = lines[lines.length - 1];
-						let isReply = false;
+							const codeBlocks = currentText!.match(/`{3}([\w]*)\n([\S\s]+?)\n*?(?:`{3}|$)/g) || [];
+							const lastCodeBlock = codeBlocks[codeBlocks.length - 1];
+							const lines = currentText!.split("\n");
+							const lastLine = lines[lines.length - 1];
+							let isReply = false;
 
-						if (lastCodeBlock && !lastCodeBlock.endsWith("```") && currentText.length >= maxLength) {
-							isReply = true;
-							const incompleteCodeBlock = lastCodeBlock;
-							currentText = currentText!.substring(0, currentText!.lastIndexOf(incompleteCodeBlock));
-						} else if (
-							lastLine &&
-							(/\s+$/.test(lastLine) || !/[.,!?:;]$/.test(lastLine)) &&
-							currentText.length >= maxLength
-						) {
-							isReply = true;
-							const incompleteLastLine = lastLine;
-							currentText = currentText
-								.substring(0, currentText.lastIndexOf(incompleteLastLine))
-								.trimEnd();
+							if (lastCodeBlock && !lastCodeBlock.endsWith("```") && currentText.length >= maxLength) {
+								isReply = true;
+								const incompleteCodeBlock = lastCodeBlock;
+								currentText = currentText!.substring(0, currentText!.lastIndexOf(incompleteCodeBlock));
+							} else if (
+								lastLine &&
+								(/\s+$/.test(lastLine) || !/[.,!?:;]$/.test(lastLine)) &&
+								currentText.length >= maxLength
+							) {
+								isReply = true;
+								const incompleteLastLine = lastLine;
+								currentText = currentText
+									.substring(0, currentText.lastIndexOf(incompleteLastLine))
+									.trimEnd();
+							}
+
+							const _currentText = currentText + suffix;
+							if (_currentText.length >= 1 && isReply) {
+								await _message.edit(prevText);
+								_message = await message.channel.send(_currentText + suffix);
+							} else if (_currentText.length >= 1 && !isReply)
+								await _message.edit(_currentText.substring(0, _currentText.length - suffix.length));
+							else if (prevText.endsWith(newText)) {
+								await _message.edit(currentText);
+								console.log("done!");
+								break;
+							}
+
+							await new Promise((resolve) => setTimeout(resolve, 1000));
 						}
-
-						const _currentText = currentText + suffix;
-						if (_currentText.length >= 1 && isReply) {
-							await _message.edit(prevText);
-							_message = await message.channel.send(_currentText + suffix);
-						} else if (_currentText.length >= 1 && !isReply)
-							await _message.edit(_currentText.substring(0, _currentText.length - suffix.length));
-						else if (prevText.endsWith(newText)) {
-							await _message.edit(currentText);
-							console.log("done!");
-							break;
-						}
-
-						await new Promise((resolve) => setTimeout(resolve, 1000));
-					}
+					})();
 				},
 				onTyping: async ({ text_new }) => {
 					newText = text_new;
+
+					await new Promise((resolve) => setTimeout(resolve, 100));
 				},
 			});
 		},

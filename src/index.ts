@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import { initialize } from "./commands/chat/poe.js";
+import { initialize } from "./commands/chat/poe";
 import Client from "./structures/client";
 
 (async () => {

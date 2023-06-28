@@ -25,6 +25,7 @@ export const send_message: Poe["send_message"] = async (...args) => {
 	return new Promise((resolve, reject) => {
 		for (const poe of [...poes.values()]) {
 			if (!poe.pendingCount) {
+				console.log(poe);
 				poe.send_message(...args)
 					.then(resolve)
 					.catch(reject);
