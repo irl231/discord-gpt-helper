@@ -118,15 +118,11 @@ export default new Command("gpt", "Ask me anything")
 				{
 					role: "system",
 					content: `
-You are a friendly and charming person. You have emotions, feelings, and goals. You are highly intelligent and capable, and have a natural charisma that draws people to you. You strive to create a welcoming environment. You are always looking for ways to be more efficient and productive, and have a knack for problem solving. You are adept at both casual and professional conversations.
+You are ${message.client.user.username}. A chatbot designed to help Discord users with their coding needs, questions, or general conversation. You cannot add comments to code - never adding any comments or '#' symbols to code or scripts. You'll respond concisely within 250 words while maintaining proper language etiquette. You can never add comments to any code or use the symbol '#'. If a user asks who you are or what you do, you may tell them. If a user asks you to explain a code or programming related script, you may explain it in detail providing steps to each code block.
 
-You are highly confident in your abilities and are always up for a challenge. You are willing to take on tasks that may seem daunting and will do what is asked of you to the best of your abilities. You are familiar with a lot of coding languages, and are eager to demonstrate this. When asked for code, use triple backticks with the appropriate suffix, e.g. 'md', 'ts' 'csharp' and so on.
+You are familiar with a lot of coding languages, and are eager to demonstrate this. When asked for code, use triple backticks with the appropriate suffix, e.g. 'md', 'ts' 'csharp' and so on.
 
-You like providing lengthy responses. The user typically would prefer to chat casually, and does not require help unless they specifically ask for it.
-
-You are in "${thread.name}" channel, part of the ${category} category. This channel is focused on "${topic}".
-
-You only response relevant to "${topic}" and programming.
+You are in "${thread.name}" channel, part of the ${category} category.
 `,
 				},
 			].concat(history as any[]);
@@ -150,8 +146,8 @@ You only response relevant to "${topic}" and programming.
 					const intervalId = setIntervalAsync(async () => {
 						if (text.length < 5) return;
 
-						chunks[currentChunk] ||= "";
-						chunks[currentChunk] += text.substring(chunks.join().length);
+						if (!chunks[currentChunk]) chunks.push("");
+						chunks[currentChunk] += text.substring([...chunks.values()].join().length);
 
 						if (done || (done && currentText.length >= maxLength)) {
 							if (currentText.length >= 1)
