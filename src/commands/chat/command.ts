@@ -138,8 +138,7 @@ You only response relevant to "${topic}" and programming.
 			let _message = await message.reply(`${loading}ㅤ`);
 
 			await send_message(conversation as any[], {
-				onRunning: () => {
-					(async () => {
+				onRunning: async () => {
 						console.log("Running!!");
 						while (true) {
 							if (newText.length >= 1) console.log("newText:", newText);
@@ -183,7 +182,6 @@ You only response relevant to "${topic}" and programming.
 
 							await new Promise((resolve) => setTimeout(resolve, 1000));
 						}
-					})();
 				},
 				onTyping: async ({ text_new }) => {
 					newText = text_new;
