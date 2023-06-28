@@ -131,9 +131,9 @@ You only response relevant to "${topic}" and programming.
 				},
 			].concat(history as any[]);
 
-			const maxLength = 1000;
 			const chunks: string[] = [];
 			const suffix = "ㅤ<a:loading:1118947021508853904>";
+			const maxLength = 1000 + suffix.length;
 			let _message = await message.reply(suffix);
 			let done = false;
 			let currentChunk = 0;
