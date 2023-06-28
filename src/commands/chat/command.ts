@@ -129,7 +129,7 @@ You are in "${thread.name}" channel, part of the ${category} category.
 
 			const chunks: string[] = [];
 			const suffix = "ㅤ<a:loading:1118947021508853904>";
-			const maxLength = 1000 + suffix.length;
+			const maxLength = 600 + suffix.length;
 
 			let done = false;
 			let currentChunk = 0;
@@ -141,55 +141,13 @@ You are in "${thread.name}" channel, part of the ${category} category.
 			const editMessage = async (content: string) => await message.edit(content);
 			const sendMessage = async (content: string) => (message = await message.channel.send(content));
 
-			await send_message(conversation as any[], {
-				onRunning: async () => {
-					const intervalId = setIntervalAsync(async () => {
-						if (text.length < 5) return;
-
-						if (!chunks[currentChunk]) chunks.push("");
-						chunks[currentChunk] += text.substring([...chunks.values()].join().length);
-
-						if (done || (done && currentText.length >= maxLength)) {
-							if (currentText.length >= 1)
-								await editMessage(currentText.substring(0, currentText.length - suffix.length));
-
-							clearIntervalAsync(intervalId);
-							return;
-						}
-
-						[currentText, newText] = [chunks[currentChunk]?.trim() ?? "", ""];
-
-						currentText = handleIncompleteCodeBlock(currentText);
-						currentText = handleIncompleteLine(currentText);
-
-						currentText = currentText.replaceAll(
-							/([\n\r]{2,})(?=[^\n\r]*```[\s\S]*?```)|([\n\r]{2,})(?=[^\n\r])/g,
-							"\n"
-						);
-
-						currentText = currentText + suffix;
-						if (currentText.length >= 1 && newText.length <= 0) await editMessage(currentText);
-						else if (currentText.length >= 1)
-							await editMessage(currentText.substring(0, currentText.length - suffix.length));
-
-						if (newText.length >= 1) await sendMessage(newText + suffix);
-					}, 500);
-				},
-				onTyping: async (msg) => {
-					text = msg.text;
-					await new Promise((resolve) => setTimeout(resolve, 100));
-				},
-			});
-
-			done = true;
-
-			function handleIncompleteCodeBlock(currentText: string): string {
-				const codeBlocks = currentText.match(/`{3}([\w]*)\n([\S\s]+?)\n*?(?:`{3}|$)/g) || [];
+			const handleIncompleteCodeBlock = (currentText: string) => {
+				const codeBlocks = currentText!.match(/`{3}([\w]*)\n([\S\s]+?)\n*?(?:`{3}|$)/g) || [];
 				const lastCodeBlock = codeBlocks[codeBlocks.length - 1];
 
 				if (lastCodeBlock && !lastCodeBlock.endsWith("```") && currentText.length >= maxLength) {
 					const incompleteCodeBlock = lastCodeBlock;
-					chunks[currentChunk] = currentText.substring(0, currentText.lastIndexOf(incompleteCodeBlock));
+					chunks[currentChunk] = currentText!.substring(0, currentText!.lastIndexOf(incompleteCodeBlock));
 					currentText = chunks[currentChunk]?.trim() ?? "";
 
 					currentChunk++;
@@ -199,10 +157,10 @@ You are in "${thread.name}" channel, part of the ${category} category.
 				}
 
 				return currentText;
-			}
+			};
 
-			function handleIncompleteLine(currentText: string): string {
-				const lines = currentText.split("\n");
+			const handleIncompleteLine = (currentText: string) => {
+				const lines = currentText!.split("\n");
 				const lastLine = lines[lines.length - 1];
 
 				if (
@@ -223,6 +181,47 @@ You are in "${thread.name}" channel, part of the ${category} category.
 				}
 
 				return currentText;
-			}
+			};
+
+			await send_message(conversation as any[], {
+				onRunning: async () => {
+					const intervalId = setIntervalAsync(async () => {
+						if (text.length < 5) return;
+
+						chunks[currentChunk] ||= "";
+						chunks[currentChunk] += text.substring([...chunks.values()].join().length);
+
+						if (done || (done && currentText.length >= maxLength)) {
+							if (currentText.length >= 1)
+								await editMessage(currentText.substring(0, currentText.length - suffix.length));
+
+							clearIntervalAsync(intervalId);
+							return;
+						}
+
+						[currentText, newText] = [chunks[currentChunk]?.trim() ?? "", ""];
+
+						currentText = handleIncompleteCodeBlock(currentText);
+						currentText = handleIncompleteLine(currentText);
+						currentText = currentText.replaceAll(
+							/([\n\r]{2,})(?=[^\n\r]*```[\s\S]*?```)|([\n\r]{2,})(?=[^\n\r])/g,
+							"\n"
+						);
+
+						currentText = currentText + suffix;
+						if (currentText.length >= 1 && newText.length <= 0) await editMessage(currentText);
+						else if (currentText.length >= 1)
+							await editMessage(currentText.substring(0, currentText.length - suffix.length));
+
+						if (newText.length >= 1) await sendMessage(newText + suffix);
+					}, 500);
+				},
+				onTyping: async (msg) => {
+					text = msg.text;
+					await new Promise((resolve) => setTimeout(resolve, 100));
+				},
+			});
+
+			done = true;
 		},
 	});
