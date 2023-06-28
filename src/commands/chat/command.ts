@@ -134,12 +134,16 @@ You only response relevant to "${topic}" and programming.
 			const chunks: string[] = [];
 			const suffix = "ㅤ<a:loading:1118947021508853904>";
 			const maxLength = 1000 + suffix.length;
-			let _message = await message.reply(suffix);
+
 			let done = false;
 			let currentChunk = 0;
 			let currentText = "";
 			let newText = "";
 			let text = "";
+
+			let _message = await message.reply(suffix);
+			const editMessage = async (content: string) => await _message.edit(content);
+			const sendMessage = async (content: string) => (_message = await message.channel.send(content));
 
 			await send_message(conversation as any[], {
 				onRunning: () => {
@@ -150,7 +154,7 @@ You only response relevant to "${topic}" and programming.
 
 							if (done || (done && currentText.length >= maxLength)) {
 								if (currentText.length >= 1)
-									await _message.edit(currentText.substring(0, currentText.length - suffix.length));
+									await editMessage(currentText.substring(0, currentText.length - suffix.length));
 								await clearIntervalAsync(intervalId);
 								return;
 							}
@@ -198,11 +202,11 @@ You only response relevant to "${topic}" and programming.
 							);
 
 							currentText = currentText + suffix;
-							if (currentText.length >= 1 && newText.length <= 0) await _message.edit(currentText);
+							if (currentText.length >= 1 && newText.length <= 0) await editMessage(currentText);
 							else if (currentText.length >= 1)
-								await _message.edit(currentText.substring(0, currentText.length - suffix.length));
+								await editMessage(currentText.substring(0, currentText.length - suffix.length));
 
-							if (newText.length >= 1) _message = await message.channel.send(newText + suffix);
+							if (newText.length >= 1) await sendMessage(newText + suffix);
 						}
 					}, 1000);
 				},
