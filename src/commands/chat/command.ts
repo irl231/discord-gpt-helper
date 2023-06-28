@@ -8,8 +8,6 @@ import {
 	ThreadAutoArchiveDuration,
 } from "discord.js";
 
-import { clearIntervalAsync, setIntervalAsync } from "set-interval-async";
-
 import Command from "../../structures/command";
 import { send_message } from "./poe";
 
@@ -130,7 +128,6 @@ You only response relevant to "${topic}" and programming.
 `,
 				},
 			].concat(history as any[]);
-
 			const chunks: string[] = [];
 			const suffix = "ㅤ<a:loading:1118947021508853904>";
 			const maxLength = 1000 + suffix.length;
@@ -145,68 +142,41 @@ You only response relevant to "${topic}" and programming.
 			const editMessage = async (content: string) => await _message.edit(content);
 			const sendMessage = async (content: string) => (_message = await message.channel.send(content));
 
-			await send_message(conversation as any[], {
-				onRunning: () => {
-					const intervalId = setIntervalAsync(async () => {
-						if (text.length >= 5) {
-							if (!chunks[currentChunk]) chunks.push("");
-							chunks[currentChunk] += text.substring([...chunks.values()].join().length);
+			await send_message(message.content, {
+				onRunning: async () => {
+					const intervalId = setInterval(async () => {
+						if (text.length < 5) return;
 
-							if (done || (done && currentText.length >= maxLength)) {
-								if (currentText.length >= 1)
-									await editMessage(currentText.substring(0, currentText.length - suffix.length));
-								await clearIntervalAsync(intervalId);
-								return;
-							}
+						chunks[currentChunk] ||= "";
+						chunks[currentChunk] += text.substring(chunks.join().length);
 
-							currentText = chunks[currentChunk]?.trim() ?? "";
-							newText = "";
-
-							const codeBlocks = currentText!.match(/`{3}([\w]*)\n([\S\s]+?)\n*?(?:`{3}|$)/g) || [];
-							const lastCodeBlock = codeBlocks[codeBlocks.length - 1];
-							const lines = currentText!.split("\n");
-							const lastLine = lines[lines.length - 1];
-
-							if (lastCodeBlock && !lastCodeBlock.endsWith("```") && currentText.length >= maxLength) {
-								const incompleteCodeBlock = lastCodeBlock;
-								chunks[currentChunk] = currentText!.substring(
-									0,
-									currentText!.lastIndexOf(incompleteCodeBlock)
-								);
-								currentText = chunks[currentChunk]?.trim() ?? "";
-
-								currentChunk++;
-								chunks.push("");
-								chunks[currentChunk] += incompleteCodeBlock;
-								newText = chunks[currentChunk] ?? "";
-							} else if (
-								lastLine &&
-								(/\s+$/.test(lastLine) || !/[.,!?:;]$/.test(lastLine)) &&
-								currentText.length >= maxLength
-							) {
-								const incompleteLastLine = lastLine;
-								chunks[currentChunk] = currentText
-									.substring(0, currentText.lastIndexOf(incompleteLastLine))
-									.trimEnd();
-								currentText = chunks[currentChunk]?.trim() ?? "";
-
-								currentChunk++;
-								chunks.push("");
-								chunks[currentChunk] += incompleteLastLine;
-								newText = chunks[currentChunk] ?? "";
-							}
-
-							currentText = currentText.replaceAll(
-								/([\n\r]{2,})(?=[^\n\r]*```[\s\S]*?```)|([\n\r]{2,})(?=[^\n\r])/g,
-								"\n"
-							);
-
-							currentText = currentText + suffix;
-							if (currentText.length >= 1 && newText.length <= 0) await editMessage(currentText);
-							else if (currentText.length >= 1)
+						if (done || (done && currentText.length >= maxLength)) {
+							if (currentText.length >= 1) {
 								await editMessage(currentText.substring(0, currentText.length - suffix.length));
+							}
+							clearInterval(intervalId);
+							return;
+						}
 
-							if (newText.length >= 1) await sendMessage(newText + suffix);
+						[currentText, newText] = [chunks[currentChunk]?.trim() ?? "", ""];
+
+						currentText = handleIncompleteCodeBlock(currentText);
+						currentText = handleIncompleteLine(currentText);
+
+						currentText = currentText.replaceAll(
+							/([\n\r]{2,})(?=[^\n\r]*```[\s\S]*?```)|([\n\r]{2,})(?=[^\n\r])/g,
+							"\n"
+						);
+
+						currentText = currentText + suffix;
+						if (currentText.length >= 1 && newText.length <= 0) {
+							await editMessage(currentText);
+						} else if (currentText.length >= 1) {
+							await editMessage(currentText.substring(0, currentText.length - suffix.length));
+						}
+
+						if (newText.length >= 1) {
+							await sendMessage(newText + suffix);
 						}
 					}, 500);
 				},
@@ -215,6 +185,49 @@ You only response relevant to "${topic}" and programming.
 					await new Promise((resolve) => setTimeout(resolve, 100));
 				},
 			});
+
 			done = true;
+
+			function handleIncompleteCodeBlock(currentText: string): string {
+				const codeBlocks = currentText.match(/`{3}([\w]*)\n([\S\s]+?)\n*?(?:`{3}|$)/g) || [];
+				const lastCodeBlock = codeBlocks[codeBlocks.length - 1];
+
+				if (lastCodeBlock && !lastCodeBlock.endsWith("```") && currentText.length >= maxLength) {
+					const incompleteCodeBlock = lastCodeBlock;
+					chunks[currentChunk] = currentText.substring(0, currentText.lastIndexOf(incompleteCodeBlock));
+					currentText = chunks[currentChunk]?.trim() ?? "";
+
+					currentChunk++;
+					chunks.push("");
+					chunks[currentChunk] += incompleteCodeBlock;
+					newText = chunks[currentChunk] ?? "";
+				}
+
+				return currentText;
+			}
+
+			function handleIncompleteLine(currentText: string): string {
+				const lines = currentText.split("\n");
+				const lastLine = lines[lines.length - 1];
+
+				if (
+					lastLine &&
+					(/\s+$/.test(lastLine) || !/[.,!?:;]$/.test(lastLine)) &&
+					currentText.length >= maxLength
+				) {
+					const incompleteLastLine = lastLine;
+					chunks[currentChunk] = currentText
+						.substring(0, currentText.lastIndexOf(incompleteLastLine))
+						.trimEnd();
+					currentText = chunks[currentChunk]?.trim() ?? "";
+
+					currentChunk++;
+					chunks.push("");
+					chunks[currentChunk] += incompleteLastLine;
+					newText = chunks[currentChunk] ?? "";
+				}
+
+				return currentText;
+			}
 		},
 	});
