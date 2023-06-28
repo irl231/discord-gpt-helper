@@ -8,6 +8,7 @@ import {
 	ThreadAutoArchiveDuration,
 } from "discord.js";
 
+import { clearIntervalAsync, setIntervalAsync } from "set-interval-async";
 import Command from "../../structures/command";
 import { send_message } from "./poe";
 
@@ -144,7 +145,7 @@ You only response relevant to "${topic}" and programming.
 
 			await send_message(message.content, {
 				onRunning: async () => {
-					const intervalId = setInterval(async () => {
+					const intervalId = setIntervalAsync(async () => {
 						if (text.length < 5) return;
 
 						chunks[currentChunk] ||= "";
@@ -154,7 +155,7 @@ You only response relevant to "${topic}" and programming.
 							if (currentText.length >= 1) {
 								await editMessage(currentText.substring(0, currentText.length - suffix.length));
 							}
-							clearInterval(intervalId);
+							clearIntervalAsync(intervalId);
 							return;
 						}
 
