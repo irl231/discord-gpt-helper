@@ -9,6 +9,7 @@ import {
 } from "discord.js";
 
 import { clearIntervalAsync, setIntervalAsync } from "set-interval-async";
+
 import Command from "../../structures/command";
 import { send_message } from "./poe";
 
@@ -129,6 +130,7 @@ You only response relevant to "${topic}" and programming.
 `,
 				},
 			].concat(history as any[]);
+
 			const chunks: string[] = [];
 			const suffix = "ㅤ<a:loading:1118947021508853904>";
 			const maxLength = 1000 + suffix.length;
@@ -139,11 +141,11 @@ You only response relevant to "${topic}" and programming.
 			let newText = "";
 			let text = "";
 
-			let _message = await message.reply(suffix);
-			const editMessage = async (content: string) => await _message.edit(content);
-			const sendMessage = async (content: string) => (_message = await message.channel.send(content));
+			message = await message.reply(suffix);
+			const editMessage = async (content: string) => await message.edit(content);
+			const sendMessage = async (content: string) => (message = await message.channel.send(content));
 
-			await send_message(message.content, {
+			await send_message(conversation as any[], {
 				onRunning: async () => {
 					const intervalId = setIntervalAsync(async () => {
 						if (text.length < 5) return;
@@ -152,9 +154,9 @@ You only response relevant to "${topic}" and programming.
 						chunks[currentChunk] += text.substring(chunks.join().length);
 
 						if (done || (done && currentText.length >= maxLength)) {
-							if (currentText.length >= 1) {
+							if (currentText.length >= 1)
 								await editMessage(currentText.substring(0, currentText.length - suffix.length));
-							}
+
 							clearIntervalAsync(intervalId);
 							return;
 						}
@@ -170,15 +172,11 @@ You only response relevant to "${topic}" and programming.
 						);
 
 						currentText = currentText + suffix;
-						if (currentText.length >= 1 && newText.length <= 0) {
-							await editMessage(currentText);
-						} else if (currentText.length >= 1) {
+						if (currentText.length >= 1 && newText.length <= 0) await editMessage(currentText);
+						else if (currentText.length >= 1)
 							await editMessage(currentText.substring(0, currentText.length - suffix.length));
-						}
 
-						if (newText.length >= 1) {
-							await sendMessage(newText + suffix);
-						}
+						if (newText.length >= 1) await sendMessage(newText + suffix);
 					}, 500);
 				},
 				onTyping: async (msg) => {
