@@ -8,6 +8,8 @@ import {
 	ThreadAutoArchiveDuration,
 } from "discord.js";
 
+import { clearIntervalAsync, setIntervalAsync } from "set-interval-async";
+
 import Command from "../../structures/command";
 import { send_message } from "./poe";
 
@@ -129,65 +131,85 @@ You only response relevant to "${topic}" and programming.
 				},
 			].concat(history as any[]);
 
-			const loading = message.guild?.emojis.cache.get("1118947021508853904");
-			const suffix = ` ${loading}`;
-			const maxLength = 1000 + suffix.length;
+			const maxLength = 1000;
+			const chunks: string[] = [];
+			const suffix = "ㅤ<a:loading:1118947021508853904>";
+			let _message = await message.reply(suffix);
+			let done = false;
+			let currentChunk = 0;
 			let currentText = "";
 			let newText = "";
-
-			let _message = await message.reply(`${loading}ㅤ`);
+			let text = "";
 
 			await send_message(conversation as any[], {
-				onRunning: async () => {
-						console.log("Running!!");
-						while (true) {
-							if (newText.length >= 1) console.log("newText:", newText);
-							if (newText.length <= 5) continue;
-							const prevText = currentText;
-							currentText += newText;
+				onRunning: () => {
+					const intervalId = setIntervalAsync(async () => {
+						if (text.length >= 5) {
+							if (!chunks[currentChunk]) chunks.push("");
+							chunks[currentChunk] += text.substring([...chunks.values()].join().length);
+
+							if (done || (done && currentText.length >= maxLength)) {
+								if (currentText.length >= 1)
+									await _message.edit(currentText.substring(0, currentText.length - suffix.length));
+								await clearIntervalAsync(intervalId);
+								return;
+							}
+
+							currentText = chunks[currentChunk]?.trim() ?? "";
+							newText = "";
 
 							const codeBlocks = currentText!.match(/`{3}([\w]*)\n([\S\s]+?)\n*?(?:`{3}|$)/g) || [];
 							const lastCodeBlock = codeBlocks[codeBlocks.length - 1];
 							const lines = currentText!.split("\n");
 							const lastLine = lines[lines.length - 1];
-							let isReply = false;
 
 							if (lastCodeBlock && !lastCodeBlock.endsWith("```") && currentText.length >= maxLength) {
-								isReply = true;
 								const incompleteCodeBlock = lastCodeBlock;
-								currentText = currentText!.substring(0, currentText!.lastIndexOf(incompleteCodeBlock));
+								chunks[currentChunk] = currentText!.substring(
+									0,
+									currentText!.lastIndexOf(incompleteCodeBlock)
+								);
+								currentText = chunks[currentChunk]?.trim() ?? "";
+
+								currentChunk++;
+								chunks.push("");
+								chunks[currentChunk] += incompleteCodeBlock;
+								newText = chunks[currentChunk] ?? "";
 							} else if (
 								lastLine &&
 								(/\s+$/.test(lastLine) || !/[.,!?:;]$/.test(lastLine)) &&
 								currentText.length >= maxLength
 							) {
-								isReply = true;
 								const incompleteLastLine = lastLine;
-								currentText = currentText
+								chunks[currentChunk] = currentText
 									.substring(0, currentText.lastIndexOf(incompleteLastLine))
 									.trimEnd();
+								currentText = chunks[currentChunk]?.trim() ?? "";
+
+								currentChunk++;
+								chunks.push("");
+								chunks[currentChunk] += incompleteLastLine;
+								newText = chunks[currentChunk] ?? "";
 							}
 
-							const _currentText = currentText + suffix;
-							if (_currentText.length >= 1 && isReply) {
-								await _message.edit(prevText);
-								_message = await message.channel.send(_currentText + suffix);
-							} else if (_currentText.length >= 1 && !isReply)
-								await _message.edit(_currentText.substring(0, _currentText.length - suffix.length));
-							else if (prevText.endsWith(newText)) {
-								await _message.edit(currentText);
-								console.log("done!");
-								break;
-							}
+							currentText = currentText.replaceAll(
+								/([\n\r]{2,})(?=[^\n\r]*```[\s\S]*?```)|([\n\r]{2,})(?=[^\n\r])/g,
+								"\n"
+							);
 
-							await new Promise((resolve) => setTimeout(resolve, 1000));
+							currentText = currentText + suffix;
+							if (currentText.length >= 1 && newText.length <= 0) await _message.edit(currentText);
+							else if (currentText.length >= 1)
+								await _message.edit(currentText.substring(0, currentText.length - suffix.length));
+
+							if (newText.length >= 1) _message = await message.channel.send(newText + suffix);
 						}
+					}, 1000);
 				},
-				onTyping: async ({ text_new }) => {
-					newText = text_new;
-
-					await new Promise((resolve) => setTimeout(resolve, 100));
+				onTyping: async (msg) => {
+					text = msg.text;
 				},
 			});
+			done = true;
 		},
 	});
