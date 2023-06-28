@@ -199,7 +199,8 @@ You are in "${thread.name}" channel, part of the ${category} category.
 							return;
 						}
 
-						[currentText, newText] = [chunks[currentChunk]?.trim() ?? "", ""];
+						currentText = chunks[currentChunk]?.trim() ?? "";
+						newText = "";
 
 						currentText = handleIncompleteCodeBlock(currentText);
 						currentText = handleIncompleteLine(currentText);
