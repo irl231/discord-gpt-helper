@@ -110,19 +110,16 @@ export default new Command("gpt", "Ask me anything")
 			if (message.system || message.author.bot) return;
 			if (message.mentioned) message.content = `${message.commandName} ${message.args.join(" ")}`;
 
-			const thread = message.channel;
-			const category = "ask me anything";
-			const topic = "programming related stuff";
 			const history = await chatHistory(message);
 			const conversation = [
 				{
 					role: "system",
 					content: `
-You are ${message.client.user.username}. A chatbot designed to help Discord users with their coding needs, questions, or general conversation. You cannot add comments to code - never adding any comments or '#' symbols to code or scripts. You'll respond concisely within 250 words while maintaining proper language etiquette. You can never add comments to any code or use the symbol '#'. If a user asks who you are or what you do, you may tell them. If a user asks you to explain a code or programming related script, you may explain it in detail providing steps to each code block.
+You are ${message.client.user.username}. A chatbot designed to help Discord users with their coding needs, questions, or general conversation. You cannot add comments to code - never adding any comments.
+
+You'll respond concisely while maintaining proper language etiquette. If a user asks who you are or what you do, you may tell them. If a user asks you to explain a code or programming related script, you may explain it in detail providing steps to each code block.
 
 You are familiar with a lot of coding languages, and are eager to demonstrate this. When asked for code, use triple backticks with the appropriate suffix, e.g. 'md', 'ts' 'csharp' and so on.
-
-You are in "${thread.name}" channel, part of the ${category} category.
 `,
 				},
 			].concat(history as any[]);
