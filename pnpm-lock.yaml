@@ -5,8 +5,8 @@ dependencies:
     specifier: 1.6.3
     version: 1.6.3
   '@lazuee/poe.js':
-    specifier: 0.1.5
-    version: 0.1.5
+    specifier: 0.1.6
+    version: 0.1.6
   '@prisma/client':
     specifier: 4.16.1
     version: 4.16.1(prisma@4.16.1)
@@ -452,8 +452,8 @@ packages:
     dev: true
     optional: true
 
-  /@lazuee/poe.js@0.1.5:
-    resolution: {integrity: sha512-XRnBNAuLj1JFuzsipkcpgwUZjv3pa7L2fLG8pNmuque4bKU87NPG54m193brkZHbiFdB1tWptq8OIt9/jGB0Rg==}
+  /@lazuee/poe.js@0.1.6:
+    resolution: {integrity: sha512-e/yjcWKLn5avFPUhxjbSXKgSg68b2nFFq6X8Tw/+3tM5GR50aLt2m/Amg3IiSPma4qvSPQ1JiqG8LPzZHNiIOg==}
     engines: {node: '>=16.0.0'}
     dependencies:
       '@types/md5': 2.3.2
@@ -1645,7 +1645,7 @@ packages:
 
 time:
   /@discordjs/builders@1.6.3: '2023-05-01T21:35:51.693Z'
-  /@lazuee/poe.js@0.1.5: '2023-06-25T09:04:06.582Z'
+  /@lazuee/poe.js@0.1.6: '2023-06-30T06:17:18.455Z'
   /@prisma/client@4.16.1: '2023-06-22T16:22:15.041Z'
   /@trivago/prettier-plugin-sort-imports@4.1.1: '2023-02-24T15:17:52.727Z'
   /@types/node@20.3.2: '2023-06-26T20:02:47.486Z'

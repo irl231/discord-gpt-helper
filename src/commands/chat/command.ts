@@ -10,13 +10,14 @@ import {
 
 import { clearIntervalAsync, setIntervalAsync } from "set-interval-async";
 
+import { Conversation } from "@lazuee/poe.js";
 import Command from "../../structures/command";
 import { send_message } from "./poe";
 
 const chatHistory = async function (
 	message: Message,
-	conversation: Record<string, any>[] = []
-): Promise<Record<string, any>[]> {
+	conversation: Conversation[] = []
+): Promise<Conversation[]> {
 	if (conversation.length <= 25) {
 		const regex = new RegExp(`^(@${message.client.user.username})`, "g");
 		let content = message.cleanContent.replace(regex, "").trim();
@@ -111,7 +112,7 @@ export default new Command("gpt", "Ask me anything")
 			if (message.mentioned) message.content = `${message.commandName} ${message.args.join(" ")}`;
 
 			const history = await chatHistory(message);
-			const conversation = [
+			const conversation: Conversation[]= [
 				{
 					role: "system",
 					content: `
@@ -122,7 +123,7 @@ You'll respond concisely while maintaining proper language etiquette. If a user 
 You are familiar with a lot of coding languages, and are eager to demonstrate this. When asked for code, use triple backticks with the appropriate suffix, e.g. 'md', 'ts' 'csharp' and so on.
 `,
 				},
-			].concat(history as any[]);
+			];
 
 			const chunks: string[] = [];
 			const suffix = "ㅤ<a:loading:1118947021508853904>";
@@ -138,7 +139,7 @@ You are familiar with a lot of coding languages, and are eager to demonstrate th
 			const editMessage = async (content: string) => await _message.edit(content);
 			const sendMessage = async (content: string) => (_message = await message.channel.send(content));
 
-			await send_message(conversation as any[], {
+			await send_message(conversation.concat(history), {
 				onRunning: async () => {
 					const intervalId = setIntervalAsync(async () => {
 						if (text.length < 5) return;

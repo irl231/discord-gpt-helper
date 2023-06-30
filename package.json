@@ -9,7 +9,7 @@
 	},
 	"dependencies": {
 		"@discordjs/builders": "1.6.3",
-		"@lazuee/poe.js": "0.1.5",
+		"@lazuee/poe.js": "0.1.6",
 		"@prisma/client": "4.16.1",
 		"captcha-canvas": "3.2.1",
 		"discord.js": "14.11.0",
