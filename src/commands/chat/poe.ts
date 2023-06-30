@@ -11,13 +11,16 @@ export const initialize = async () => {
 			displayName: "Sage",
 		});
 
-		poes.set(token, poe);
-		await poe.initialize().catch((error) => {
+		try {
+			await poe.initialize();
+			poes.set(token, poe);
+			console.info(`'${token}' initialized...`)
+		} catch (error: any) {
 			if (error.message.includes("Invalid token")) {
 				console.info(`'${token}' is invalid? skipping...`);
 				poes.delete(token);
 			}
-		});
+		};
 	}
 };
 

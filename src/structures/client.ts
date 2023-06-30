@@ -76,14 +76,13 @@ export default class Client extends Bot {
 			}
 		}
 
-		for (const filename of glob.sync("events/**/*.ts", { cwd: resolve(__dirname, "..") })) {
+		for (const filename of glob.sync("events/**/*.{js,ts}", { cwd: resolve(__dirname, "..") })) {
 			try {
 				const filepath = resolve(__dirname, "..", filename);
 				const data = (await import(filepath)).default;
 				const events: Event<any>[] = Array.isArray(data) ? [...data] : [data];
 				for (const event of events) {
 					if (!(event instanceof Event)) continue;
-					console.log(filename);
 					addListener(this, event.data.name, event.data.execute, event.data.name);
 				}
 			} catch (error) {
